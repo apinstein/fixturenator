@@ -15,6 +15,7 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
     public function setup()
     {
         Fixturenator::clearFactories();
+        Fixturenator::clearSequences();
     }
 
     public function tearDown()
@@ -55,6 +56,44 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($newObj->password, 'pass_for_joe');
     }
 
+    /**
+     * @dataProvider magicLambdaStylesTestData
+     */
+    public function testMagicLambdaStyles($expr, $expectedResult)
+    {
+        Fixturenator::define(TestObject, array(
+            'username'  => 'joe',
+            'password'  => $expr,
+        ));
+
+        $newObj = Fixturenator::build(TestObject);
+        $this->assertEquals($newObj->password, $expectedResult);
+    }
+    public function magicLambdaStylesTestData()
+    {
+        return array(
+            // **not** generator
+            array('pass_for_joe', 'pass_for_joe'),
+            array('$XXXpass_for_joe', '$XXXpass_for_joe'),
+            // generators
+            array(new WFGenerator('return "pass_for_{$o->username}";'), 'pass_for_joe'),
+            array(create_function('$o', 'return "pass_for_{$o->username}";'), 'pass_for_joe'),
+            array('return "pass_for_{$o->username}";', 'pass_for_joe'),
+            array('return "pass_for_joe";', 'pass_for_joe'),
+            // sequencegenerators
+            array(new WFSequenceGenerator('return "pass_for_joe";'), 'pass_for_joe'),
+            array(new WFSequenceGenerator(create_function('', 'return "pass_for_joe";')), 'pass_for_joe'),
+            array(new WFSequenceGenerator('return "pass_for_joe_{$n}";'), 'pass_for_joe_1'),
+            array(new WFSequenceGenerator(create_function('$n', 'return "pass_for_joe_{$n}";')), 'pass_for_joe_1'),
+        );
+    }
+
+    public function testSequenceGeneratorRequiresValidCallback()
+    {
+        $this->setExpectedException('Exception');
+        new WFSequenceGenerator('$XXXblah";');
+    }
+
     public function testSequenceGenerator()
     {
         Fixturenator::define(TestObject, array(
@@ -66,6 +105,19 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
 
         $newObj = Fixturenator::build(TestObject);
         $this->assertEquals($newObj->username, 2);
+    }
+
+    public function testGlobalSequences()
+    {
+        Fixturenator::createSequence('seq1');
+        Fixturenator::createSequence('seq2');
+
+        $this->assertEquals(Fixturenator::getSequence('seq1')->next(), 1);
+        $this->assertEquals(Fixturenator::getSequence('seq1')->next(), 2);
+        $this->assertEquals(Fixturenator::getSequence('seq1')->next(), 3);
+        $this->assertEquals(Fixturenator::getSequence('seq2')->next(), 1);
+        $this->assertEquals(Fixturenator::getSequence('seq2')->next(), 2);
+        $this->assertEquals(Fixturenator::getSequence('seq2')->next(), 3);
     }
 
     public function testSequenceGeneratorWithCallback()
@@ -93,5 +145,4 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         $newObj = Fixturenator::build('foo');
         $this->assertTrue($newObj instanceof TestObject);
     }
-
 }

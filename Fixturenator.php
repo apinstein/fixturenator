@@ -3,42 +3,75 @@
 // factory_girl port
 class Fixturenator
 {
-    protected static $factoryDefinitions = array();
+    protected static $factories = array();
+    protected static $sequences = array();
 
     // options are FixturenatorDefinition::OPT_*
     public static function define($name, $data = array(), $options = array())
     {
-        if (isset(self::$factoryDefinitions[$name])) throw new Exception("A factory named {$name} has already been defined.");
-        self::$factoryDefinitions[$name] = new FixturenatorDefinition($name, $data, $options);
+        if (isset(self::$factories[$name])) throw new Exception("A factory named {$name} has already been defined.");
+        self::$factories[$name] = new FixturenatorDefinition($name, $data, $options);
+    }
+
+    public static function createSequence($name, $sequenceProcessor = NULL)
+    {
+        if (isset(self::$sequences[$name])) throw new Exception("A sequence named {$name} has already been defined.");
+        $s = new WFSequenceGenerator($sequenceProcessor);
+        self::$sequences[$name] = $s;
+    }
+
+    public static function getSequence($name)
+    {
+        if (!isset(self::$sequences[$name])) throw new Exception("A sequence named {$name} has not been defined.");
+        return self::$sequences[$name];
+    }
+    
+    public static function nextSequence($name)
+    {
+        return self::getSequence($name)->next();
     }
 
     public static function clearFactories()
     {
-        self::$factoryDefinitions = array();
+        self::$factories = array();
+    }
+
+    public static function clearSequences()
+    {
+        self::$sequences = array();
     }
 
     private static function requireFactoryNamed($name)
     {
-        if (!isset(self::$factoryDefinitions[$name])) throw new Exception("A factory named {$name} has not been defined.");
-        return self::$factoryDefinitions[$name];
+        if (!isset(self::$factories[$name])) throw new Exception("A factory named {$name} has not been defined.");
+        return self::$factories[$name];
     }
 
+    // maybe call this "new"?
     public static function build($name, $data = array())
     {
-        $f = self::requireFactoryNamed($name);
-        return $f->build($data);
+        return self::requireFactoryNamed($name)->build($data);
+    }
+    public static function raw($name, $data = array())
+    {
+        return self::build($name, $data);
     }
     
+    // maybe call this "saved"?
     public static function create($name, $data = array())
     {
-        $f = self::requireFactoryNamed($name);
-        return $f->create($data);
+        return self::requireFactoryNamed($name)->create($data);
     }
 
     public static function stub($name, $data = array())
     {
-        $f = self::requireFactoryNamed($name);
-        return $f->stub($data);
+        return self::requireFactoryNamed($name)->stub($data);
+    }
+
+    // maybe call this "asArray"? "toArray"?
+    public static function attributesFor($name, $data = array())
+    {
+        return self::requireFactoryNamed($name)->attributesFor($data);
     }
 }
 
@@ -58,6 +91,7 @@ class FixturenatorDefinition
     public function __construct($name, $valueGenerators = array(), $options = array())
     {
         $this->name = $name;
+        $this->valueGenerators = array();
 
         if (is_callable($valueGenerators))  // allow a passed block to dynamically add generators to FixturenatorDefinition
         {
@@ -180,13 +214,22 @@ class FixturenatorDefinition
     }
 
     /**
+     * @todo test
      * @todo Need a good phocoa "stub" class. Prolly a WFDictionary (which is also a TODO) that has __get and __set magic for KVC stubby goodness
      */
     public function stub($overrideData = array())
     {
-        $newObj = new WFArray;
+        $newObj = new ArrayObject;
         $this->resolveData($newObj, $overrideData);
         return $newObj;
+    }
+
+    /**
+     * @todo test
+     */
+    public function attributesFor($overrideData = array())
+    {
+        return $this->stub($overrideData);
     }
 }
 
@@ -196,7 +239,7 @@ class WFGenerator
 
     public function __construct($value)
     {
-        if (is_string($value) && strpos($value, '$o') !== false)
+        if (is_string($value) && $this->__detectLambda($value, '$o'))
         {
             $this->generator = create_function('$o', $value);
         }
@@ -219,6 +262,13 @@ class WFGenerator
             return $this->generator;  // static values
         }
     }
+
+    protected function __detectLambda($possibleLambda, $expectedVarName)
+    {
+        if (strncasecmp('return', $possibleLambda, 6) === 0) return true;
+        if (strpos($possibleLambda, "\${$expectedVarName}") !== false) return true;
+        return false;
+    }
 }
 
 class WFSequenceGenerator extends WFGenerator
@@ -235,9 +285,13 @@ class WFSequenceGenerator extends WFGenerator
         {
             $this->sequenceProcessor = $sequenceProcessor;
         }
-        else if (is_string($sequenceProcessor) && strpos($sequenceProcessor, '$n') !== false)
+        else if (is_string($sequenceProcessor) && $this->__detectLambda($sequenceProcessor, '$n') !== false)
         {
             $this->sequenceProcessor = create_function('$n', $sequenceProcessor);
+        }
+        else if ($sequenceProcessor !== NULL)
+        {
+            throw new Exception("Someting besides a function was passed.");
         }
 
         parent::__construct(array($this, 'nextVal'));

@@ -1,0 +1,4 @@
+*.swp
+*.swo
+package.xml
+fixturenator-*.tgz

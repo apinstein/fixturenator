@@ -170,6 +170,15 @@ class FixturenatorDefinition
             if (isset($overrideData[$k]))
             {
                 $value = $overrideData[$k];
+                if (is_callable($value))
+                {
+                    $value = call_user_func($value, $newObj);
+                }
+                else if (FixturenatorDefinition::__detectLambda($value, '$o'))
+                {
+                    $lambda = create_function('$o', $value);
+                    $value = $lambda($newObj);
+                }
             }
             else
             {
@@ -241,6 +250,13 @@ class FixturenatorDefinition
     {
         return $this->stub($overrideData)->getArrayCopy();
     }
+
+    public static function __detectLambda($possibleLambda, $expectedVarName)
+    {
+        if (strncasecmp('return', $possibleLambda, 6) === 0) return true;
+        if (strpos($possibleLambda, "\${$expectedVarName}") !== false) return true;
+        return false;
+    }
 }
 
 class FixturenatorGenerator
@@ -249,7 +265,7 @@ class FixturenatorGenerator
 
     public function __construct($value)
     {
-        if (is_string($value) && $this->__detectLambda($value, '$o'))
+        if (is_string($value) && FixturenatorDefinition::__detectLambda($value, '$o'))
         {
             $this->generator = create_function('$o', $value);
         }
@@ -272,13 +288,6 @@ class FixturenatorGenerator
             return $this->generator;  // static values
         }
     }
-
-    protected function __detectLambda($possibleLambda, $expectedVarName)
-    {
-        if (strncasecmp('return', $possibleLambda, 6) === 0) return true;
-        if (strpos($possibleLambda, "\${$expectedVarName}") !== false) return true;
-        return false;
-    }
 }
 
 class FixturenatorSequence extends FixturenatorGenerator
@@ -295,7 +304,7 @@ class FixturenatorSequence extends FixturenatorGenerator
         {
             $this->sequenceProcessor = $sequenceProcessor;
         }
-        else if (is_string($sequenceProcessor) && $this->__detectLambda($sequenceProcessor, '$n') !== false)
+        else if (is_string($sequenceProcessor) && FixturenatorDefinition::__detectLambda($sequenceProcessor, '$n') !== false)
         {
             $this->sequenceProcessor = create_function('$n', $sequenceProcessor);
         }

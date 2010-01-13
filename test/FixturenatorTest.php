@@ -97,6 +97,26 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($newObj->password, 'pass_for_joe');
     }
 
+    public function testDynamicOverride()
+    {
+        Fixturenator::define(TestObject, array(
+            'username'  => 'joe',
+            'password'  => '1234',
+        ));
+
+        $newObj = Fixturenator::create(TestObject);
+        $this->assertEquals('1234', $newObj->password);
+
+        $newObj = Fixturenator::create(TestObject, array('password' => 'return 1+2;'));
+        $this->assertEquals('3', $newObj->password);
+
+        $newObj = Fixturenator::create(TestObject, array('password' => create_function('$o', 'return 1+2;')));
+        $this->assertEquals('3', $newObj->password);
+
+        $newObj = Fixturenator::create(TestObject, array('password' => create_function('$o', 'return "{$o->username}1234";')));
+        $this->assertEquals('joe1234', $newObj->password);
+    }
+
     /**
      * @dataProvider magicLambdaStylesTestData
      */

@@ -1,6 +1,7 @@
 <?php
 
-// factory_girl port
+/* vim: set expandtab tabstop=4 shiftwidth=4 syntax=php: */
+
 class Fixturenator
 {
     protected static $factories = array();
@@ -235,7 +236,7 @@ class FixturenatorDefinition
      */
     public function stub($overrideData = array())
     {
-        $newObj = new ArrayObject;
+        $newObj = new MagicArray;
         $this->resolveData($newObj, $overrideData);
         return $newObj;
     }
@@ -245,7 +246,7 @@ class FixturenatorDefinition
      */
     public function asArray($overrideData = array())
     {
-        return $this->stub($overrideData);
+        return $this->stub($overrideData)->getArrayCopy();
     }
 }
 
@@ -323,5 +324,17 @@ class WFSequenceGenerator extends WFGenerator
             unset($sequenceProcessorF);
         }
         return $nextVal;
+    }
+}
+
+class MagicArray extends ArrayObject
+{
+    public function setValueForKey($v, $k)
+    {
+        $this->offsetSet($k, $v);
+    }
+    public function __get($k)
+    {
+        return $this->offsetGet($k);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+/* vim: set expandtab tabstop=4 shiftwidth=4 syntax=php: */
+
 require dirname(__FILE__).'/../Fixturenator.php';
 
 define('TestObject', 'TestObject');
@@ -169,5 +171,17 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         ), array(FixturenatorDefinition::OPT_CLASS => TestObject));
         $newObj = Fixturenator::create('foo');
         $this->assertTrue($newObj instanceof TestObject);
+    }
+
+    public function testStub()
+    {
+        Fixturenator::define(TestObject, array('username' => '1'));
+        $this->assertEquals(1, Fixturenator::stub(TestObject)->username);
+    }
+
+    public function testAsArray()
+    {
+        Fixturenator::define(TestObject, array('username' => '1'));
+        $this->assertEquals(array('username' => '1'), Fixturenator::asArray(TestObject));
     }
 }

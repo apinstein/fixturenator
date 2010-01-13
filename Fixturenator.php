@@ -9,6 +9,12 @@ class Fixturenator
     // options are FixturenatorDefinition::OPT_*
     public static function define($name, $data = array(), $options = array())
     {
+        // wire up parent
+        if (isset($options[FixturenatorDefinition::OPT_PARENT]))
+        {
+            if (!isset(self::$factories[$options[FixturenatorDefinition::OPT_PARENT]])) throw new Exception("No FixturenatorDefinition for {$options[FixturenatorDefinition::OPT_PARENT]}.");
+            $options[FixturenatorDefinition::OPT_PARENT] = self::$factories[$options[FixturenatorDefinition::OPT_PARENT]];
+        }
         if (isset(self::$factories[$name])) throw new Exception("A factory named {$name} has already been defined.");
         self::$factories[$name] = new FixturenatorDefinition($name, $data, $options);
     }
@@ -82,9 +88,10 @@ class FixturenatorDefinition
     protected $valueGenerators;
     protected $saveMethod;
     protected $saveMethodArgs;
+    protected $parent;
 
     const OPT_CLASS             = 'class';
-    //const OPT_PARENT            = 'parent';
+    const OPT_PARENT            = 'parent';
     const OPT_SAVE_METHOD       = 'saveMethod';
     const OPT_SAVE_METHOD_ARGS  = 'saveMethodArgs';
 
@@ -92,6 +99,7 @@ class FixturenatorDefinition
     {
         $this->name = $name;
         $this->valueGenerators = array();
+        $this->parent = NULL;
 
         if (is_callable($valueGenerators))  // allow a passed block to dynamically add generators to FixturenatorDefinition
         {
@@ -106,10 +114,16 @@ class FixturenatorDefinition
 
         foreach (array_merge(array(
                                     self::OPT_CLASS             => $name,
+                                    self::OPT_PARENT            => NULL,
                                     self::OPT_SAVE_METHOD       => NULL,
                                     self::OPT_SAVE_METHOD_ARGS  => NULL,
                                ), $options) as $k => $v) {
             $this->$k = $v;
+        }
+        if ($this->parent)
+        {
+            if (!($this->parent instanceof FixturenatorDefinition)) throw new Exception("OPT_PARENT must be a FixturenatorDefinition object.");
+            $this->class = $this->parent->class;
         }
     }
 
@@ -146,8 +160,15 @@ class FixturenatorDefinition
         $this->prepareAttributeGenerator($k, $v);
     }
 
-    private function resolveData($newObj, $overrideData = array())
+    public function resolveData($newObj, $overrideData = array())
     {
+        // resolve inheritance
+        if ($this->parent)
+        {
+            $this->parent->resolveData($newObj);
+        }
+
+        // wire up data for this factory
         $allKeys = array_merge(array_keys($overrideData), array_keys($this->valueGenerators));
         foreach ($allKeys as $k) {
             $value = NULL;
@@ -178,7 +199,8 @@ class FixturenatorDefinition
 
                 // try calling setter
                 $setMethod = "set" . ucfirst($k);
-                if (method_exists($newObj, $setMethod))        {  
+                if (method_exists($newObj, $setMethod))
+                {
                     $newObj->$setMethod($value);
                     $performed = true;
                 }

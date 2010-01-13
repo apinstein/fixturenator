@@ -136,6 +136,31 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($newObj->password, 'pass_for_2');
     }
 
+    public function testInheritance()
+    {
+        Fixturenator::define(TestObject, array(
+            'username' => 'parent',
+            'password' => 'parentOnly',
+        ));
+        Fixturenator::define('TestObjectChild', array(
+            'username' => 'child',
+            'email'    => 'childOnly',
+        ), array(FixturenatorDefinition::OPT_PARENT => TestObject));
+        Fixturenator::define('TestObjectGrandchild', array(
+            'username' => 'grandchild',
+        ), array(FixturenatorDefinition::OPT_PARENT => 'TestObjectChild'));
+
+        $newObj = Fixturenator::build('TestObjectChild');
+        $this->assertEquals('child', $newObj->username);
+        $this->assertEquals('parentOnly', $newObj->password);
+        $this->assertEquals('childOnly', $newObj->email);
+
+        $newObj = Fixturenator::build('TestObjectGrandchild');
+        $this->assertEquals('grandchild', $newObj->username);
+        $this->assertEquals('parentOnly', $newObj->password);
+        $this->assertEquals('childOnly', $newObj->email);
+    }
+
     // FixturenatorDefinition::OPT_*
     public function testUseOptClassToHaveFactoryNameDifferentFromClassProduced()
     {

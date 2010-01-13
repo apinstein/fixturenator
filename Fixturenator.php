@@ -23,7 +23,7 @@ class Fixturenator
     public static function createSequence($name, $sequenceProcessor = NULL)
     {
         if (isset(self::$sequences[$name])) throw new Exception("A sequence named {$name} has already been defined.");
-        $s = new WFSequenceGenerator($sequenceProcessor);
+        $s = new FixturenatorSequence($sequenceProcessor);
         self::$sequences[$name] = $s;
     }
 
@@ -124,13 +124,13 @@ class FixturenatorDefinition
 
     private function prepareAttributeGenerator($k, $v)
     {
-        if ($v instanceof WFGenerator)
+        if ($v instanceof FixturenatorGenerator)
         {
             $this->valueGenerators[$k] = $v;
         }
         else    // static data
         {
-            $this->valueGenerators[$k] = new WFGenerator($v);
+            $this->valueGenerators[$k] = new FixturenatorGenerator($v);
         }
     }
 
@@ -139,8 +139,8 @@ class FixturenatorDefinition
      *
      * <code>
      * $f->attr = 'foo';
-     * $f->attr = new WFGenerator(function($o) { return rand(1000,9999); } );
-     * $f->attr = new WFSequenceGenerator;
+     * $f->attr = new FixturenatorGenerator(function($o) { return rand(1000,9999); } );
+     * $f->attr = new FixturenatorSequence;
      * </code>
      *
      * inside the block.
@@ -174,7 +174,7 @@ class FixturenatorDefinition
             else
             {
                 $generator = $this->valueGenerators[$k];
-                if ($generator instanceof WFGenerator)
+                if ($generator instanceof FixturenatorGenerator)
                 {
                     $value = $generator->next($newObj);
                 }
@@ -230,10 +230,6 @@ class FixturenatorDefinition
         return $newObj;
     }
 
-    /**
-     * @todo test
-     * @todo Need a good phocoa "stub" class. Prolly a WFDictionary (which is also a TODO) that has __get and __set magic for KVC stubby goodness
-     */
     public function stub($overrideData = array())
     {
         $newObj = new MagicArray;
@@ -241,16 +237,13 @@ class FixturenatorDefinition
         return $newObj;
     }
 
-    /**
-     * @todo test
-     */
     public function asArray($overrideData = array())
     {
         return $this->stub($overrideData)->getArrayCopy();
     }
 }
 
-class WFGenerator
+class FixturenatorGenerator
 {
     public $generator;
 
@@ -288,7 +281,7 @@ class WFGenerator
     }
 }
 
-class WFSequenceGenerator extends WFGenerator
+class FixturenatorSequence extends FixturenatorGenerator
 {
     protected $val;
     protected $sequenceProcessor;

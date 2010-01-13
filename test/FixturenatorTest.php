@@ -76,7 +76,7 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
     {
         Fixturenator::define(TestObject, create_function('$f', '
             $f->username = 1;
-            $f->password = new WFSequenceGenerator;
+            $f->password = new FixturenatorSequence;
         '));
 
         $newObj = Fixturenator::create(TestObject);
@@ -88,8 +88,8 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
     {
         Fixturenator::define(TestObject, array(
             'username'  => 'joe',
-            'email'     => new WFGenerator(create_function('$o', 'return "{$o->username}@email.com";')),
-            'password'  => new WFGenerator('return "pass_for_{$o->username}";'),
+            'email'     => new FixturenatorGenerator(create_function('$o', 'return "{$o->username}@email.com";')),
+            'password'  => new FixturenatorGenerator('return "pass_for_{$o->username}";'),
         ));
 
         $newObj = Fixturenator::create(TestObject);
@@ -117,28 +117,28 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
             array('pass_for_joe', 'pass_for_joe'),
             array('$XXXpass_for_joe', '$XXXpass_for_joe'),
             // generators
-            array(new WFGenerator('return "pass_for_{$o->username}";'), 'pass_for_joe'),
+            array(new FixturenatorGenerator('return "pass_for_{$o->username}";'), 'pass_for_joe'),
             array(create_function('$o', 'return "pass_for_{$o->username}";'), 'pass_for_joe'),
             array('return "pass_for_{$o->username}";', 'pass_for_joe'),
             array('return "pass_for_joe";', 'pass_for_joe'),
             // sequencegenerators
-            array(new WFSequenceGenerator('return "pass_for_joe";'), 'pass_for_joe'),
-            array(new WFSequenceGenerator(create_function('', 'return "pass_for_joe";')), 'pass_for_joe'),
-            array(new WFSequenceGenerator('return "pass_for_joe_{$n}";'), 'pass_for_joe_1'),
-            array(new WFSequenceGenerator(create_function('$n', 'return "pass_for_joe_{$n}";')), 'pass_for_joe_1'),
+            array(new FixturenatorSequence('return "pass_for_joe";'), 'pass_for_joe'),
+            array(new FixturenatorSequence(create_function('', 'return "pass_for_joe";')), 'pass_for_joe'),
+            array(new FixturenatorSequence('return "pass_for_joe_{$n}";'), 'pass_for_joe_1'),
+            array(new FixturenatorSequence(create_function('$n', 'return "pass_for_joe_{$n}";')), 'pass_for_joe_1'),
         );
     }
 
     public function testSequenceGeneratorRequiresValidCallback()
     {
         $this->setExpectedException('Exception');
-        new WFSequenceGenerator('$XXXblah";');
+        new FixturenatorSequence('$XXXblah";');
     }
 
     public function testSequenceGenerator()
     {
         Fixturenator::define(TestObject, array(
-            'username' => new WFSequenceGenerator,
+            'username' => new FixturenatorSequence,
         ));
 
         $newObj = Fixturenator::create(TestObject);
@@ -164,8 +164,8 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
     public function testSequenceGeneratorWithCallback()
     {
         Fixturenator::define(TestObject, array(
-            'username' => new WFSequenceGenerator(create_function('$n', 'return "username{$n}";')),
-            'password' => new WFSequenceGenerator('return "pass_for_{$n}";'),
+            'username' => new FixturenatorSequence(create_function('$n', 'return "username{$n}";')),
+            'password' => new FixturenatorSequence('return "pass_for_{$n}";'),
         ));
 
         $newObj = Fixturenator::create(TestObject);

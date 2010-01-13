@@ -53,20 +53,14 @@ class Fixturenator
         return self::$factories[$name];
     }
 
-    // maybe call this "new"?
-    public static function build($name, $data = array())
-    {
-        return self::requireFactoryNamed($name)->build($data);
-    }
-    public static function raw($name, $data = array())
-    {
-        return self::build($name, $data);
-    }
-    
-    // maybe call this "saved"?
     public static function create($name, $data = array())
     {
         return self::requireFactoryNamed($name)->create($data);
+    }
+    
+    public static function saved($name, $data = array())
+    {
+        return self::requireFactoryNamed($name)->saved($data);
     }
 
     public static function stub($name, $data = array())
@@ -75,9 +69,9 @@ class Fixturenator
     }
 
     // maybe call this "asArray"? "toArray"?
-    public static function attributesFor($name, $data = array())
+    public static function asArray($name, $data = array())
     {
-        return self::requireFactoryNamed($name)->attributesFor($data);
+        return self::requireFactoryNamed($name)->asArray($data);
     }
 }
 
@@ -221,16 +215,16 @@ class FixturenatorDefinition
         }
     }
     
-    public function build($overrideData = array())
+    public function create($overrideData = array())
     {
         $newObj = new $this->class;
         $this->resolveData($newObj, $overrideData);
         return $newObj;
     }
 
-    public function create($overrideData = array())
+    public function saved($overrideData = array())
     {
-        $newObj = $this->build($overrideData);
+        $newObj = $this->create($overrideData);
         call_user_func_array(array($newObj, $this->saveMethod), $this->saveMethodArgs);
         return $newObj;
     }
@@ -249,7 +243,7 @@ class FixturenatorDefinition
     /**
      * @todo test
      */
-    public function attributesFor($overrideData = array())
+    public function asArray($overrideData = array())
     {
         return $this->stub($overrideData);
     }

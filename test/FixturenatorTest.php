@@ -27,7 +27,7 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         Fixturenator::define(TestObject, array(
             'username' => 1,
         ));
-        $newObj = Fixturenator::build(TestObject);
+        $newObj = Fixturenator::create(TestObject);
         $this->assertEquals($newObj->username, 1);
     }
 
@@ -38,7 +38,7 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
             $f->password = new WFSequenceGenerator;
         '));
 
-        $newObj = Fixturenator::build(TestObject);
+        $newObj = Fixturenator::create(TestObject);
         $this->assertEquals($newObj->username, 1);
         $this->assertEquals($newObj->password, 1);
     }
@@ -51,7 +51,7 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
             'password'  => new WFGenerator('return "pass_for_{$o->username}";'),
         ));
 
-        $newObj = Fixturenator::build(TestObject);
+        $newObj = Fixturenator::create(TestObject);
         $this->assertEquals($newObj->email, 'joe@email.com');
         $this->assertEquals($newObj->password, 'pass_for_joe');
     }
@@ -66,7 +66,7 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
             'password'  => $expr,
         ));
 
-        $newObj = Fixturenator::build(TestObject);
+        $newObj = Fixturenator::create(TestObject);
         $this->assertEquals($newObj->password, $expectedResult);
     }
     public function magicLambdaStylesTestData()
@@ -100,10 +100,10 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
             'username' => new WFSequenceGenerator,
         ));
 
-        $newObj = Fixturenator::build(TestObject);
+        $newObj = Fixturenator::create(TestObject);
         $this->assertEquals($newObj->username, 1);
 
-        $newObj = Fixturenator::build(TestObject);
+        $newObj = Fixturenator::create(TestObject);
         $this->assertEquals($newObj->username, 2);
     }
 
@@ -127,11 +127,11 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
             'password' => new WFSequenceGenerator('return "pass_for_{$n}";'),
         ));
 
-        $newObj = Fixturenator::build(TestObject);
+        $newObj = Fixturenator::create(TestObject);
         $this->assertEquals($newObj->username, 'username1');
         $this->assertEquals($newObj->password, 'pass_for_1');
 
-        $newObj = Fixturenator::build(TestObject);
+        $newObj = Fixturenator::create(TestObject);
         $this->assertEquals($newObj->username, 'username2');
         $this->assertEquals($newObj->password, 'pass_for_2');
     }
@@ -150,12 +150,12 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
             'username' => 'grandchild',
         ), array(FixturenatorDefinition::OPT_PARENT => 'TestObjectChild'));
 
-        $newObj = Fixturenator::build('TestObjectChild');
+        $newObj = Fixturenator::create('TestObjectChild');
         $this->assertEquals('child', $newObj->username);
         $this->assertEquals('parentOnly', $newObj->password);
         $this->assertEquals('childOnly', $newObj->email);
 
-        $newObj = Fixturenator::build('TestObjectGrandchild');
+        $newObj = Fixturenator::create('TestObjectGrandchild');
         $this->assertEquals('grandchild', $newObj->username);
         $this->assertEquals('parentOnly', $newObj->password);
         $this->assertEquals('childOnly', $newObj->email);
@@ -167,7 +167,7 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         Fixturenator::define('foo', array(
             'username' => 1,
         ), array(FixturenatorDefinition::OPT_CLASS => TestObject));
-        $newObj = Fixturenator::build('foo');
+        $newObj = Fixturenator::create('foo');
         $this->assertTrue($newObj instanceof TestObject);
     }
 }

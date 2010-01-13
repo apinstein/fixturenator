@@ -10,6 +10,13 @@ class TestObject
     public $username;
     public $password;
     public $email;
+
+    public $saved = false;
+
+    public function save()
+    {
+        $this->saved = func_get_args();
+    }
 }
 
 class FixturenatorTest extends PHPUnit_Framework_TestCase
@@ -20,10 +27,42 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         Fixturenator::clearSequences();
     }
 
-    public function tearDown()
+    // fixture creation modalities
+    public function testCreate()
     {
+        $expected = new TestObject;
+        $expected->username = '1';
+
+        Fixturenator::define(TestObject, array('username' => '1'));
+        $this->assertEquals($expected, Fixturenator::create(TestObject));
     }
 
+    public function testSaved()
+    {
+        $saveArgs = array(1,2);
+
+        Fixturenator::define(TestObject, array('username' => '1'), array(
+            FixturenatorDefinition::OPT_SAVE_METHOD => 'save',
+            FixturenatorDefinition::OPT_SAVE_METHOD_ARGS => $saveArgs
+        ));
+
+        $newObject = Fixturenator::saved(TestObject);
+        $this->assertEquals($saveArgs, $newObject->saved);
+    }
+
+    public function testStub()
+    {
+        Fixturenator::define(TestObject, array('username' => '1'));
+        $this->assertEquals(1, Fixturenator::stub(TestObject)->username);
+    }
+
+    public function testAsArray()
+    {
+        Fixturenator::define(TestObject, array('username' => '1'));
+        $this->assertEquals(array('username' => '1'), Fixturenator::asArray(TestObject));
+    }
+
+    // supporting stuff
     public function testStaticGenerator()
     {
         Fixturenator::define(TestObject, array(
@@ -171,17 +210,5 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         ), array(FixturenatorDefinition::OPT_CLASS => TestObject));
         $newObj = Fixturenator::create('foo');
         $this->assertTrue($newObj instanceof TestObject);
-    }
-
-    public function testStub()
-    {
-        Fixturenator::define(TestObject, array('username' => '1'));
-        $this->assertEquals(1, Fixturenator::stub(TestObject)->username);
-    }
-
-    public function testAsArray()
-    {
-        Fixturenator::define(TestObject, array('username' => '1'));
-        $this->assertEquals(array('username' => '1'), Fixturenator::asArray(TestObject));
     }
 }

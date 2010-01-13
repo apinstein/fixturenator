@@ -52,6 +52,8 @@ There are four main ways to create data based on factories:
   * stub - creates a MagicArray instance for easy stubbing functionality.
   * asArray - a php array (hash) with all data values set by the factory
 
+Examples:
+
     // Returns an unsaved User instance
     $user = Fixturenator::create('User');
     

@@ -48,7 +48,7 @@ Factory names must be unique.
 There are four main ways to create data based on factories:
 
   * create - creates a new, unsaved instance
-  * saved - same as create, but calls the defined save method
+  * saved - same as create, but calls the defined save method ('save' by default)
   * stub - creates a MagicArray instance for easy stubbing functionality.
   * asArray - a php array (hash) with all data values set by the factory
 
@@ -59,6 +59,9 @@ Examples:
     
     // Customer the generated object
     $user = Fixturenator::create('User', array('password' => '1234'));
+
+    // returns a "saved" User object, as if you called $user->save($dbCon)
+    $user = Fixturenator::saved('User', array(), $dbCon);
 
 **Dynamically Generated Attributes**
 

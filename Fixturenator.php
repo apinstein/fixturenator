@@ -59,9 +59,25 @@ class Fixturenator
         return self::requireFactoryNamed($name)->create($data);
     }
     
+    /**
+     * Helper function to call "saved" on the named FixturenatorDefinition.
+     *
+     * @param string THe FixturenatorDefinition name (must be previously defined).
+     * @param array A hash of data to override the default data.
+     * @param mixed Any additional parameters will be passed along as to the "save method".
+     * @return object Whatever
+     * @throws object Exception
+     */
     public static function saved($name, $data = array())
     {
-        return self::requireFactoryNamed($name)->saved($data);
+        $saveMethodArgs = array();
+        if (func_num_args() > 2)
+        {
+            $passedArgs = func_get_args();
+            $saveMethodArgs = array_slice($passedArgs, 2);
+        }
+        $allArgs = array_merge(array($data), $saveMethodArgs);
+        return call_user_func_array(array(self::requireFactoryNamed($name), 'saved'), $allArgs);
     }
 
     public static function stub($name, $data = array())
@@ -110,7 +126,7 @@ class FixturenatorDefinition
         foreach (array_merge(array(
                                     self::OPT_CLASS             => $name,
                                     self::OPT_PARENT            => NULL,
-                                    self::OPT_SAVE_METHOD       => NULL,
+                                    self::OPT_SAVE_METHOD       => 'save',
                                     self::OPT_SAVE_METHOD_ARGS  => NULL,
                                ), $options) as $k => $v) {
             $this->$k = $v;
@@ -232,10 +248,25 @@ class FixturenatorDefinition
         return $newObj;
     }
 
+    /**
+     * Return a saved object.
+     *
+     * @param array A hash of data to override the default data.
+     * @param mixed Any additional parameters will be passed along as to the "save method".
+     * @return object Whatever An instance of the new object.
+     * @throws object Exception If the save method is not callable.
+     */
     public function saved($overrideData = array())
     {
+        $saveMethodArgs = $this->saveMethodArgs;
+        if (func_num_args() > 1)
+        {
+            $passedArgs = func_get_args();
+            $saveMethodArgs = array_slice($passedArgs, 1);
+        }
+
         $newObj = $this->create($overrideData);
-        call_user_func_array(array($newObj, $this->saveMethod), $this->saveMethodArgs);
+        call_user_func_array(array($newObj, $this->saveMethod), $saveMethodArgs);
         return $newObj;
     }
 

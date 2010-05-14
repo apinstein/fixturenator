@@ -183,7 +183,7 @@ class FixturenatorDefinition
         $allKeys = array_merge(array_keys($overrideData), array_keys($this->valueGenerators));
         foreach ($allKeys as $k) {
             $value = NULL;
-            if (isset($overrideData[$k]))
+            if (array_key_exists($k, $overrideData))
             {
                 $value = $overrideData[$k];
                 if (is_callable($value))

@@ -284,6 +284,7 @@ class FixturenatorDefinition
 
     public static function __detectLambda($possibleLambda, $expectedVarName)
     {
+        if (!is_string($possibleLambda)) return false;
         if (strncasecmp('return', $possibleLambda, 6) === 0) return true;
         if (strpos($possibleLambda, "\${$expectedVarName}") !== false) return true;
         return false;

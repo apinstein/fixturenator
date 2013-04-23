@@ -190,7 +190,7 @@ class FixturenatorDefinition
                 {
                     $value = call_user_func($value, $newObj);
                 }
-                else if (FixturenatorDefinition::__detectLambda($value, '$o'))
+                else if (is_string($value) && FixturenatorDefinition::__detectLambda($value, '$o'))
                 {
                     $lambda = create_function('$o', $value);
                     $value = $lambda($newObj);

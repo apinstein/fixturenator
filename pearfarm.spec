@@ -5,7 +5,7 @@ $spec = Pearfarm_PackageSpec::create(array(Pearfarm_PackageSpec::OPT_BASEDIR => 
              ->setChannel('apinstein.pearfarm.org')
              ->setSummary('A factory-based fixture generator. Inspired by http://github.com/thoughtbot/factory_girl but thoughtfully ported to PHP.')
              ->setDescription('AWESOME.')
-             ->setReleaseVersion('0.0.5')
+             ->setReleaseVersion('0.0.6')
              ->setReleaseStability('alpha')
              ->setApiVersion('0.0.5')
              ->setApiStability('alpha')

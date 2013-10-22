@@ -1,0 +1,18 @@
+{
+    "name": "apinstein/fixturenator",
+    "type": "library",
+    "description": "A factory-based fixture generator for PHP.",
+    "keywords": ["test","fixture"],
+    "homepage": "https://github.com/apinstein/fixturenator",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alan Pinstein",
+            "email": "apinstein@mac.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.2.0"
+    }
+}

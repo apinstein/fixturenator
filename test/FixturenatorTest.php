@@ -107,10 +107,10 @@ class FixturenatorTest extends PHPUnit_Framework_TestCase
         $newObj = Fixturenator::create(TestObject);
         $this->assertEquals('1234', $newObj->password);
 
-        $newObj = Fixturenator::create(TestObject, array('password' => 'return 1+2;'));
+        $newObj = Fixturenator::create(TestObject, array('password' => 'return 1+2;'), "pre-5.3 fake closure support; look for 'return' at beginning of string to detect as function.");
         $this->assertEquals('3', $newObj->password);
 
-        $newObj = Fixturenator::create(TestObject, array('password' => create_function('$o', 'return 1+2;')));
+        $newObj = Fixturenator::create(TestObject, array('password' => create_function('$o', 'return 1+2;')), 'same as above but with argument support');
         $this->assertEquals('3', $newObj->password);
 
         $newObj = Fixturenator::create(TestObject, array('password' => create_function('$o', 'return "{$o->username}1234";')));

@@ -180,8 +180,13 @@ class FixturenatorDefinition
         }
 
         // wire up data for this factory
-        $allKeys = array_merge(array_keys($overrideData), array_keys($this->valueGenerators));
+        // NOTE: if there is override data that is dynamic (closure), and it relies on the value from another field, the order 
+        // adding setters in the FixturenatorDefinition and overridedata matters!
+        // EX: username = X, pass = {usermame}1234 only works if you do it in username, password order.
+        // for any key in overrideData or valueGenerators, need to process it...
+        $allKeys = array_unique(array_merge(array_keys($this->valueGenerators), array_keys($overrideData)));
         foreach ($allKeys as $k) {
+            // figure out which value to use
             $value = NULL;
             if (array_key_exists($k, $overrideData))
             {
@@ -208,13 +213,14 @@ class FixturenatorDefinition
                     $value = $generator($newObj);
                 }
             }
-            if (is_callable(array($newObj, 'setValueForKey')))
+
+            // set value
+            if (is_callable(array($newObj, 'setValueForKey'))) // KVC support
             {
                 $newObj->setValueForKey($value, $k);
             }
-            else
+            else // emulated setValueForKey
             {
-                // emulated setValueForKey
                 $performed = false;
 
                 // try calling setter

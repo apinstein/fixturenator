@@ -127,7 +127,7 @@ class FixturenatorDefinition
                                     self::OPT_CLASS             => $name,
                                     self::OPT_PARENT            => NULL,
                                     self::OPT_SAVE_METHOD       => 'save',
-                                    self::OPT_SAVE_METHOD_ARGS  => NULL,
+                                    self::OPT_SAVE_METHOD_ARGS  => array(),
                                ), $options) as $k => $v) {
             $this->$k = $v;
         }

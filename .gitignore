@@ -2,3 +2,5 @@
 *.swo
 package.xml
 fixturenator-*.tgz
+/composer.lock
+/vendor

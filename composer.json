@@ -12,7 +12,10 @@
             "role": "Developer"
         }
     ],
+    "autoload": {
+        "classmap": ["Fixturenator.php"]
+    },
     "require": {
-        "php": ">=5.2.0"
+        "php": ">=5.3.0"
     }
 }
